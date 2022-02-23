@@ -9,9 +9,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--xmax", help="upper limit of Matsubara frequency axis "
                     "range",
                     type=float, default=3.0)
+parser.add_argument("--w2doutfile",
+                    help="HDF5 file with w2dynamics data to be used (default: "
+                    "lexicographically last in current directory)",
+                    type=h5py.File, default=None)
 args = parser.parse_args()
 
-w2dout = h5py.File(sorted(glob.iglob("*.hdf5"), reverse=True)[0], "r")
+if args.w2doutfile is not None:
+    w2dout = args.w2doutfile
+else:
+    w2dout = h5py.File(sorted(glob.iglob("*.hdf5"), reverse=True)[0], "r")
 
 try:
     niw = w2dout["/stat-last/ineq-001/siw-full/value"][()].shape[-1]
