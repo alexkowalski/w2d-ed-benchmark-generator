@@ -298,8 +298,9 @@ else:
         return proposed_trial
 
 
-for iloop in range(1, ed.Nloop):
-    print("Starting DMFT iteration ", iloop)
+for iloop in range(1, ed.Nloop + 1):
+    if rank == 0:
+        print("Starting DMFT iteration ", iloop, flush=True)
 
     ed.solve(bath, Hloc)
 
