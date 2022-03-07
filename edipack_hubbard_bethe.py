@@ -110,6 +110,8 @@ template = """
 parser = argparse.ArgumentParser(description="Run a DMFT calculation for a "
                                  "Bethe lattice Hubbard model using EDIpack "
                                  "as impurity solver.")
+parser.add_argument("--mode", metavar='MODE',
+                    help="Used by w2dynamics config generator only, ignored")
 parser.add_argument("--half-bandwidths", metavar='HALF_BW',
                     type=lambda x: abs(float(x)), default=[],
                     help="half-bandwidths of all bands",
@@ -150,6 +152,12 @@ parser.add_argument("--mixhist", metavar='OLD_HISTSIZE',
 parser.add_argument("--nbath", metavar='NBATH',
                     type=int, default=None,
                     help="Bath sites per orbital (default: total size < 10)")
+parser.add_argument("--nwarmups", metavar='NWARMUPS',
+                    help="Used by w2dynamics config generator only, ignored")
+parser.add_argument("--nmeas", metavar='NMEAS',
+                    help="Used by w2dynamics config generator only, ignored")
+parser.add_argument("--ncorr", metavar='NCORR',
+                    help="Used by w2dynamics config generator only, ignored")
 parser.add_argument("--maxiter", metavar='MAXITER',
                     type=int, default=50,
                     help="Maximum number of DMFT iterations")

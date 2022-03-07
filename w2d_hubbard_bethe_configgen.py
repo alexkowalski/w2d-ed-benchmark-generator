@@ -18,6 +18,8 @@ DMFTsteps = {dmftiter}
 StatisticSteps = {statiter}
 FileNamePrefix = edbenchmark
 mixing = {mixing}
+mixing_strategy = {mixtype}
+mixing_diis_history = {mixhist}
 magnetism = para
 FTType = none
 [Atoms]
@@ -41,9 +43,10 @@ MeasGiw = 1
 NLookup_nfft = 200000
 """
 
-parser = argparse.ArgumentParser(description="Run a DMFT calculation for a "
-                                 "Bethe lattice Hubbard model using EDIpack "
-                                 "as impurity solver.")
+parser = argparse.ArgumentParser(description="Generate input and parameter "
+                                 "files for a single-shot CT-HYB or DMFT "
+                                 "calculation for (one step of) a Bethe "
+                                 "lattice Hubbard model using w2dynamics.")
 parser.add_argument("--mode", metavar='MODE',
                     choices=("CTHYB", "DMFT"),
                     default="CTHYB",
@@ -84,6 +87,12 @@ parser.add_argument("--mu", metavar='MU',
 parser.add_argument("--mixing", metavar='OLD_SHARE',
                     type=float, default=0.2,
                     help="Share of old hybridization in new mixed input")
+parser.add_argument("--mixhist", metavar='OLD_HISTSIZE',
+                    type=int, default=4,
+                    help="Number of old hybridizations used for "
+                    "DIIS mixing (<= 1: linear mixing) ")
+parser.add_argument("--nbath", metavar='NBATH',
+                    help="Used by EDIpack calculation script only, ignored")
 parser.add_argument("--nwarmups", metavar='NWARMUPS',
                     type=int, default=20000000,
                     help="Number of warmup steps")
@@ -93,9 +102,13 @@ parser.add_argument("--nmeas", metavar='NMEAS',
 parser.add_argument("--ncorr", metavar='NCORR',
                     type=int, default=1000,
                     help="Number of steps between measurements")
-parser.add_argument("--dmftiter", metavar='MAXITER',
+parser.add_argument("--maxiter", metavar='MAXITER',
                     type=int, default=50,
-                    help="Maximum number of DMFT iterations")
+                    help="Maximum number of DMFT iterations for DMFT mode")
+parser.add_argument("--convergence-threshold", metavar='CONV_THRESH',
+                    help="Used by EDIpack calculation script only, ignored")
+parser.add_argument("--override-configfile", metavar='FILE',
+                    help="Used by EDIpack calculation script only, ignored")
 args = parser.parse_args()
 
 assert len(args.half_bandwidths) == len(args.impurity_levels), \
@@ -162,9 +175,11 @@ with os.fdopen(cfgfd, "x") as f:
                         norb=norb,
                         muimp_fname=levelfilename,
                         beta=args.beta,
-                        dmftiter=(args.dmftiter if args.mode == "DMFT" else 0),
+                        dmftiter=(args.maxiter if args.mode == "DMFT" else 0),
                         statiter=(1 if args.mode == "CTHYB" else 0),
                         mixing=args.mixing,
+                        mixtype=("linear" if args.mixhist <= 1 else "diis"),
+                        mixhist=args.mixhist,
                         hmode=hmode,
                         uloc=(args.Uloc[0]),
                         ust=str(args.Ust),
