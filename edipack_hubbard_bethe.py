@@ -9,6 +9,9 @@ import edipy as ed
 from mpi4py import MPI
 
 rank = MPI.COMM_WORLD.Get_rank()
+if rank != 0:
+    def print(*args, **kwargs):
+        pass
 
 
 def exception_mpi_abort(type, value, traceback):
@@ -122,7 +125,7 @@ parser.add_argument("--impurity-levels", metavar='LEVEL',
                     action='extend', nargs='*')
 parser.add_argument("--Uloc", metavar='U',
                     type=float, default=[],
-                    help="same-orbital interaction",
+                    help="intra-orbital interaction",
                     action='extend', nargs='*')
 parser.add_argument("--Ust", metavar='V',
                     type=float, default=0.0,
@@ -173,10 +176,39 @@ parser.add_argument("--override-configfile", metavar='FILE',
                     "yourself!)")
 args = parser.parse_args()
 
-assert len(args.half_bandwidths) == len(args.impurity_levels), \
-    "# half-bws must equal # imp. levels"
 
 norb = len(args.half_bandwidths)
+assert norb > 0, ("The half-bandwidth for EVERY band must be passed "
+                  "EXPLICITLY (at least one)")
+
+if len(args.impurity_levels) == 0:
+    args.impurity_levels = [0.0] * norb
+    print(f"WARNING: all {norb} impurity levels implicitly set to 0",
+          file=sys.stderr)
+elif len(args.impurity_levels) == 1 and norb != 1:
+    args.impurity_levels = args.impurity_levels * norb
+    print(f"WARNING: all {norb} impurity levels implicitly set to "
+          f"{args.impurity_levels[0]}",
+          file=sys.stderr)
+elif len(args.impurity_levels) != norb:
+    raise ValueError(f"Passed {len(args.impurity_levels)} impurity levels for "
+                     f"{norb} orbitals (inferred from half-bandwidths)")
+
+if len(args.Uloc) == 0:
+    args.Uloc = [0.0] * norb
+    print(f"WARNING: all {norb} intra-orbital interactions U implicitly "
+          "set to 0",
+          file=sys.stderr)
+elif len(args.Uloc) == 1 and norb != 1:
+    args.Uloc = args.Uloc * norb
+    print(f"WARNING: all {norb} intra-orbital interactions U implicitly set "
+          f"to {args.Uloc[0]}",
+          file=sys.stderr)
+elif len(args.Uloc) != norb:
+    raise ValueError(f"Passed {len(args.Uloc)} intra-orbital interactions U "
+                     f"for {norb} orbitals (inferred from half-bandwidths)")
+
+
 Uloc = [0.0] * 5
 Uloc[:len(args.Uloc)] = args.Uloc[:]
 
@@ -307,8 +339,7 @@ else:
 
 
 for iloop in range(1, ed.Nloop + 1):
-    if rank == 0:
-        print("Starting DMFT iteration ", iloop, flush=True)
+    print("Starting DMFT iteration ", iloop, flush=True)
 
     ed.solve(bath, Hloc)
 

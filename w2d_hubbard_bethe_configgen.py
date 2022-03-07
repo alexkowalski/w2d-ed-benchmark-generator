@@ -56,7 +56,7 @@ parser.add_argument("--mode", metavar='MODE',
                     "to ED bath discretization error)")
 parser.add_argument("--half-bandwidths", metavar='HALF_BW',
                     type=lambda x: abs(float(x)), default=[],
-                    help="half-bandwiths of all bands",
+                    help="half-bandwidths of all bands",
                     action='extend', nargs='*')
 parser.add_argument("--impurity-levels", metavar='LEVEL',
                     type=float, default=[],
@@ -64,7 +64,7 @@ parser.add_argument("--impurity-levels", metavar='LEVEL',
                     action='extend', nargs='*')
 parser.add_argument("--Uloc", metavar='U',
                     type=float, default=[],
-                    help="same-orbital interaction",
+                    help="intra-orbital interaction",
                     action='extend', nargs='*')
 parser.add_argument("--Ust", metavar='V',
                     type=float, default=0.0,
@@ -111,10 +111,37 @@ parser.add_argument("--override-configfile", metavar='FILE',
                     help="Used by EDIpack calculation script only, ignored")
 args = parser.parse_args()
 
-assert len(args.half_bandwidths) == len(args.impurity_levels), \
-    "# half-bws must equal # imp. levels"
 
 norb = len(args.half_bandwidths)
+assert norb > 0, ("The half-bandwidth for EVERY band must be passed "
+                  "EXPLICITLY (at least one)")
+
+if len(args.impurity_levels) == 0:
+    args.impurity_levels = [0.0] * norb
+    print(f"WARNING: all {norb} impurity levels implicitly set to 0",
+          file=sys.stderr)
+elif len(args.impurity_levels) == 1 and norb != 1:
+    args.impurity_levels = args.impurity_levels * norb
+    print(f"WARNING: all {norb} impurity levels implicitly set to "
+          f"{args.impurity_levels[0]}",
+          file=sys.stderr)
+elif len(args.impurity_levels) != norb:
+    raise ValueError(f"Passed {len(args.impurity_levels)} impurity levels for "
+                     f"{norb} orbitals (inferred from half-bandwidths)")
+
+if len(args.Uloc) == 0:
+    args.Uloc = [0.0] * norb
+    print(f"WARNING: all {norb} intra-orbital interactions U implicitly "
+          "set to 0",
+          file=sys.stderr)
+elif len(args.Uloc) == 1 and norb != 1:
+    args.Uloc = args.Uloc * norb
+    print(f"WARNING: all {norb} intra-orbital interactions U implicitly set "
+          f"to {args.Uloc[0]}",
+          file=sys.stderr)
+elif len(args.Uloc) != norb:
+    raise ValueError(f"Passed {len(args.Uloc)} intra-orbital interactions U "
+                     f"for {norb} orbitals (inferred from half-bandwidths)")
 
 if args.Jx == 0.0 and args.Jp == 0.0:
     hmode = "Density"
@@ -159,9 +186,9 @@ if args.mode == "CTHYB":
         np.savetxt(Vkfile, bath_Vs)
     dosmode = "EDcheck"
 else:
-    sys.stderr.write("WARNING: Using benchmark mode DMFT which will not "
-                     "reproduce ED results exactly due to ED discretization "
-                     "error")
+    print("WARNING: Using benchmark mode DMFT which will not reproduce ED "
+          "results exactly due to ED discretization error",
+          file=sys.stderr)
     dosmode = "Bethe"
 
 with os.fdopen(levelfd, "x") as f:
