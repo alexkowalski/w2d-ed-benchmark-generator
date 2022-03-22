@@ -72,6 +72,10 @@ for orb in range(w2dsiw.shape[0]):
     partgiw = np.loadtxt(f"impG_l{orb+1}{orb+1}_s1_iw.ed")
     edgiw[orb, :] = partgiw[:, 1]
 
+minlen = min(len(ediw), len(w2diw))
+assert np.allclose(ediw[:minlen], w2diw[:minlen]), \
+    "Error: Frequency mismatch between outputs"
+
 xmin = 0
 xmax = args.xmax
 yminG = min(np.amin(w2dgiw[:, :np.searchsorted(w2diw, xmax)]),
