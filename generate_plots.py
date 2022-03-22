@@ -82,12 +82,13 @@ yminG = min(np.amin(w2dgiw[:, :np.searchsorted(w2diw, xmax)]),
             np.amin(edgiw[:, :np.searchsorted(ediw, xmax)]))
 yminS = min(np.amin(w2dsiw[:, :np.searchsorted(w2diw, xmax)]),
             np.amin(edsiw[:, :np.searchsorted(ediw, xmax)]))
-ymaxG = max(0, np.amax(w2dgiw[:, :np.searchsorted(w2diw, xmax)]),
+ymaxG = max(np.amax(w2dgiw[:, :np.searchsorted(w2diw, xmax)]),
             np.amax(edgiw[:, :np.searchsorted(ediw, xmax)]))
-ymaxS = max(0, np.amax(w2dsiw[:, :np.searchsorted(w2diw, xmax)]),
+ymaxS = max(np.amax(w2dsiw[:, :np.searchsorted(w2diw, xmax)]),
             np.amax(edsiw[:, :np.searchsorted(ediw, xmax)]))
 yminG, ymaxG = yminG - 0.05 * (ymaxG - yminG), ymaxG + 0.05 * (ymaxG - yminG)
 yminS, ymaxS = yminS - 0.05 * (ymaxS - yminS), ymaxS + 0.05 * (ymaxS - yminS)
+ymaxG, ymaxS = max(0.0, ymaxG), max(0.0, ymaxS)
 
 figG, axG = plt.subplots(figsize=(9, 6))
 figS, axS = plt.subplots(figsize=(9, 6))
