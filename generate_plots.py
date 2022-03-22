@@ -116,15 +116,15 @@ markers = defaultdict(lambda g=iter(markercycler()): next(g))
 
 for orb in range(w2dsiw.shape[0]):
     axS.plot(ediw, edsiw[orb, :], ':', label=f"EDIpack ED orb {orb+1}",
-             zorder=-1, fillstyle='none', **markers[f"ed{orb}"], **colors[orb])
+             fillstyle='none', **markers[f"ed{orb}"], **colors[orb])
     axS.errorbar(w2diw, w2dsiw[orb, :], yerr=w2dsiwerr[orb, :],
-                 label=f"w2dynamics CTHYB orb {orb+1}",
+                 label=f"w2dynamics CTHYB orb {orb+1}", zorder=2.5,
                  fillstyle='none', **markers[f"w2{orb}"], **colors[orb])
 
     axG.plot(ediw, edgiw[orb, :], ':', label=f"EDIpack ED orb {orb+1}",
-             zorder=-1, fillstyle='none', **markers[f"ed{orb}"], **colors[orb])
+             fillstyle='none', **markers[f"ed{orb}"], **colors[orb])
     axG.errorbar(w2diw, w2dgiw[orb, :], yerr=w2dgiwerr[orb, :],
-                 label=f"w2dynamics CTHYB orb {orb+1}",
+                 label=f"w2dynamics CTHYB orb {orb+1}", zorder=2.5,
                  fillstyle='none', **markers[f"w2{orb}"], **colors[orb])
 axG.set_xlim(xmin, xmax)
 axG.set_ylim(yminG, ymaxG)
