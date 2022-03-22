@@ -30,26 +30,30 @@ except KeyError:
     iterkey = "/dmft-last/ineq-001"
 
 
-def w2d_iw_postproc(dataset):
-    # read only positive frequencies, take diagonal, transpose to (o,
-    # s, iw), spin-average
-    return np.mean(
-        np.transpose(
+def w2d_im_iw_spins_avgerr(group):
+    def get_array(subkey):
+        # read only positive frequencies, take diagonal, transpose to
+        # (o, s, iw)
+        return np.transpose(
             np.diagonal(
                 np.diagonal(
-                    dataset[:, :, :, :, niw//2:],
+                    group[subkey][:, :, :, :, niw//2:],
                     axis1=0, axis2=2),
                 axis1=0, axis2=1),
             (1, 2, 0)
-        ),
-        axis=1
-    )
+        )
+
+    errs = get_array("error")
+    vals = np.imag(get_array("value"))
+
+    # error-weighted spin average
+    vals = np.sum(vals / errs**2, axis=1) / np.sum(1.0 / errs**2, axis=1)
+    errs = np.sqrt(1.0 / np.sum(1.0 / errs**2, axis=1))
+    return vals, errs
 
 
-w2dsiw = np.imag(w2d_iw_postproc(w2dout[f"{iterkey}/siw-full/value"]))
-w2dsiwerr = w2d_iw_postproc(w2dout[f"{iterkey}/siw-full/error"])
-w2dgiw = np.imag(w2d_iw_postproc(w2dout[f"{iterkey}/giw-full/value"]))
-w2dgiwerr = w2d_iw_postproc(w2dout[f"{iterkey}/giw-full/error"])
+w2dsiw, w2dsiwerr = w2d_im_iw_spins_avgerr(w2dout[f"{iterkey}/siw-full"])
+w2dgiw, w2dgiwerr = w2d_im_iw_spins_avgerr(w2dout[f"{iterkey}/giw-full"])
 w2diw = (2 * np.pi * (np.arange(0, w2dsiw.shape[-1]) + 0.5)
          / w2dout[".config"].attrs['general.beta'])
 
