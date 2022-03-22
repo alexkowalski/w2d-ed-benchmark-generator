@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import glob
 import argparse
+from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
+import cycler
 import h5py
 
 parser = argparse.ArgumentParser()
@@ -81,16 +83,41 @@ yminS, ymaxS = yminS - 0.05 * (ymaxS - yminS), ymaxS + 0.05 * (ymaxS - yminS)
 
 figG, axG = plt.subplots(figsize=(9, 6))
 figS, axS = plt.subplots(figsize=(9, 6))
-for orb in range(w2dsiw.shape[0]):
-    axS.plot(ediw, edsiw[orb, :], 'r.:', label=f"EDIpack ED orb {orb+1}",
-             zorder=-1)
-    axS.errorbar(w2diw, w2dsiw[orb, :], yerr=w2dsiwerr[orb, :], fmt='bx',
-                 label=f"w2dynamics CTHYB orb {orb+1}")
 
-    axG.plot(ediw, edgiw[orb, :], 'r.:', label=f"EDIpack ED orb {orb+1}",
-             zorder=-1)
-    axG.errorbar(w2diw, w2dgiw[orb, :], yerr=w2dgiwerr[orb, :], fmt='bx',
-                 label=f"w2dynamics CTHYB orb {orb+1}")
+
+def colorcycler(size):
+    return cycler.cycler(
+        color=plt.cm.inferno(
+            np.linspace(0, 1, size + 2)[1:-1]
+        )
+    )
+
+
+def markercycler():
+    return cycler.cycler(
+        # choice of markers reasonably well marking the points (prefer
+        # crossing lines to surrounding, prefer symmetric to
+        # unsymmetric) with reasonably little overlap with each other
+        # or the (vertical) errorbars
+        marker=['x', '3', '4', '.', 'o', 'D', 'p', 's']
+    )
+
+
+colors = defaultdict(lambda g=iter(colorcycler(w2dsiw.shape[0])): next(g))
+markers = defaultdict(lambda g=iter(markercycler()): next(g))
+
+for orb in range(w2dsiw.shape[0]):
+    axS.plot(ediw, edsiw[orb, :], ':', label=f"EDIpack ED orb {orb+1}",
+             zorder=-1, fillstyle='none', **markers[f"ed{orb}"], **colors[orb])
+    axS.errorbar(w2diw, w2dsiw[orb, :], yerr=w2dsiwerr[orb, :],
+                 label=f"w2dynamics CTHYB orb {orb+1}",
+                 fillstyle='none', **markers[f"w2{orb}"], **colors[orb])
+
+    axG.plot(ediw, edgiw[orb, :], ':', label=f"EDIpack ED orb {orb+1}",
+             zorder=-1, fillstyle='none', **markers[f"ed{orb}"], **colors[orb])
+    axG.errorbar(w2diw, w2dgiw[orb, :], yerr=w2dgiwerr[orb, :],
+                 label=f"w2dynamics CTHYB orb {orb+1}",
+                 fillstyle='none', **markers[f"w2{orb}"], **colors[orb])
 axG.set_xlim(xmin, xmax)
 axG.set_ylim(yminG, ymaxG)
 axS.set_xlim(xmin, xmax)
@@ -120,14 +147,19 @@ yminS, ymaxS = yminS - 0.05 * (ymaxS - yminS), ymaxS + 0.05 * (ymaxS - yminS)
 
 figG, axG = plt.subplots(figsize=(9, 6))
 figS, axS = plt.subplots(figsize=(9, 6))
+markers = defaultdict(lambda g=iter(markercycler()): next(g))
 for orb in range(w2dsiw.shape[0]):
     axS.errorbar(w2diw, w2dsiw[orb, :], yerr=w2dsiwerr[orb, :],
                  label=r"difference $\Sigma_{\mathrm{CTHYB}} "
-                 r"- \Sigma_{\mathrm{ED}}$ orb " f"{orb+1}")
+                 r"- \Sigma_{\mathrm{ED}}$ orb " f"{orb+1}",
+                 **colors[orb], **markers[orb],
+                 capsize=4, solid_capstyle='butt')
 
     axG.errorbar(w2diw, w2dgiw[orb, :], yerr=w2dgiwerr[orb, :],
                  label=r"difference $G_{\mathrm{CTHYB}} "
-                 r"- G_{\mathrm{ED}}$ orb " f"{orb+1}")
+                 r"- G_{\mathrm{ED}}$ orb " f"{orb+1}",
+                 **colors[orb], **markers[orb],
+                 capsize=4, solid_capstyle='butt')
 axG.set_xlim(xmin, xmax)
 axG.set_ylim(yminG, ymaxG)
 axS.set_xlim(xmin, xmax)
