@@ -155,6 +155,8 @@ yminS, ymaxS = yminS - 0.05 * (ymaxS - yminS), ymaxS + 0.05 * (ymaxS - yminS)
 
 figG, axG = plt.subplots(figsize=(9, 6))
 figS, axS = plt.subplots(figsize=(9, 6))
+axS.axhline(0.0, color='r')
+axG.axhline(0.0, color='r')
 markers = defaultdict(lambda g=iter(markercycler()): next(g))
 for orb in range(w2dsiw.shape[0]):
     axS.errorbar(w2diw, w2dsiw[orb, :], yerr=w2dsiwerr[orb, :],
